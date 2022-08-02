@@ -24,7 +24,3 @@ app.listen(port, host, (error) => {
   }
   console.log(`server is running on http://${host}:${port}`);
 });
-
-console.log(`hello js`);
-
-console.log(`hi github`);
