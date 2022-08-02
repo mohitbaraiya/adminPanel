@@ -33,7 +33,6 @@
                     <thead>
                       <tr>
                         <th>Full Name</th>
-                        <th>Comapny</th>
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Images</th>
@@ -45,7 +44,6 @@
                     <% for (let r of record) { %> 
                     <tr>
                         <td class="table-info"><%= r.name %></td>
-                        <td class="table-danger"><%= r.company %></td>
                         <td class="table-success"><%= r.email %></td>
                         <td class="table-primary"><%= r.phone %></td>
                         <td class="table-info"><img src="<%= r.image %>" height="85px" /></td>
@@ -58,6 +56,7 @@
                               <a class="dropdown-item" href="/EditData/<%=r.id%>"
                                 ><i class="bx bx-edit-alt me-1"></i> Update</a
                               >
+                              
                               <a class="dropdown-item" href="/deleteData/<%=r.id%>"
                                 ><i class="bx bx-trash me-1"></i> Delete</a
                               >

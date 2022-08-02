@@ -7,6 +7,9 @@ module.exports.home = (req, res) => {
 };
 
 module.exports.formLayout = (req, res) => {
+  if (!req.cookies.userId) {
+    return res.redirect('/loginPage');
+  }
   return res.render('formLayout');
 };
 
@@ -21,7 +24,6 @@ module.exports.insertEmployee = (req, res) => {
     employee.create(
       {
         name: req.body.name,
-        company: req.body.company,
         email: req.body.email,
         phone: req.body.phone,
         image: imageData,
@@ -38,6 +40,9 @@ module.exports.insertEmployee = (req, res) => {
 };
 
 module.exports.viewTable = async (req, res) => {
+  if (!req.cookies.userId) {
+    return res.redirect('/loginPage');
+  }
   var record = await employee.find({});
   if (!record) {
     console.log(`record not found`);
@@ -96,7 +101,6 @@ module.exports.updateData = async (req, res) => {
         updateId,
         {
           name: req.body.name,
-          company: req.body.company,
           email: req.body.email,
           phone: req.body.phone,
           image: newImage,
@@ -121,7 +125,6 @@ module.exports.updateData = async (req, res) => {
           updateId,
           {
             name: req.body.name,
-            company: req.body.company,
             email: req.body.email,
             phone: req.body.phone,
             image: oldImage,

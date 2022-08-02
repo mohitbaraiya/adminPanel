@@ -12,4 +12,7 @@ routes.get('/deleteData/:id', adminController.deleteData);
 routes.get('/editData/:id', adminController.editData);
 routes.post('/updateData', adminController.updateData);
 
+// for login user and register user
+routes.use('/', require('./admin'));
+
 module.exports = routes;
