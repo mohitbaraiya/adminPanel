@@ -1,48 +1,49 @@
 const registerUser = require('../models/registerUser');
-
+const bcrypt = require('bcryptjs');
 // for register functionality
 
 module.exports.registerPage = (req, res) => {
-  if (req.cookies.userId) {
-    return res.redirect('/');
-  }
   res.render('registerUser');
 };
 
-module.exports.registerUser = (req, res) => {
-  registerUser.findOne({ email: req.body.email }, (error, registerrecord) => {
-    if (error) {
-      console.log(`something wrong in register user `);
-      return false;
-    }
-    if (registerrecord) {
-      console.log(`email or username already exists`);
-      return res.redirect('/loginPage');
-    }
-    registerUser.create(
-      {
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
-      },
-      (error, record) => {
-        if (error) {
-          console.log(`error to register user`);
-          return false;
-        }
-        console.log(`register successfully`);
-        return res.redirect('/');
-      }
+module.exports.registerUser = async (req, res) => {
+  let registerrecord = await registerUser.findOne({ email: req.body.email });
+
+  if (registerrecord) {
+    console.log(`email or username already exists`);
+    req.flash(
+      'error_message',
+      'account already exists please log in to continue'
     );
-  });
+    return res.redirect('back');
+  }
+
+  {
+    let hashedpwd = await bcrypt.hash(req.body.password, 10);
+    let record = await registerUser.create({
+      username: req.body.username,
+      email: req.body.email,
+      password: hashedpwd,
+    });
+
+    if (!record) {
+      console.log(`error to register user`);
+      req.flash('error_message', 'register error please try again !!');
+      return res.redirect('back');
+    }
+
+    console.log(`register successfully`);
+    req.flash(
+      'success_message',
+      'registered successfully. please login to continue !!'
+    );
+    return res.redirect('/loginPage');
+  }
 };
 
 // for login functionality
 
 module.exports.loginPage = (req, res) => {
-  if (req.cookies.userId) {
-    return res.redirect('/');
-  }
   res.render('loginUser');
 };
 
@@ -70,6 +71,15 @@ module.exports.loginUser = (req, res) => {
 // logout function
 
 module.exports.logoutUser = (req, res) => {
-  res.cookie('userId', '');
-  return res.redirect('/loginPage');
+  if (!req.isAuthenticated()) {
+    req.flash('error_message', 'You need to be logged in to log out!');
+    return res.redirect('/loginPage');
+  }
+  req.logout((error) => {
+    if (error) {
+      console.log(`logout failed`);
+    }
+    req.flash('success_message', 'You have successfully logged out!');
+    return res.redirect('/loginPage');
+  });
 };

@@ -2,6 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const routes = express.Router();
 const userController = require('../controllers/userController');
+const flash = require('connect-flash');
 
 // for register
 routes.get('/registerPage', userController.registerPage);
@@ -14,6 +15,7 @@ routes.post(
   passport.authenticate('local', {
     failureRedirect: '/loginPage',
     successRedirect: '/',
+    failureFlash: true,
   }),
   userController.loginUser
 );

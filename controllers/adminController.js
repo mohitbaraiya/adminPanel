@@ -7,9 +7,6 @@ module.exports.home = (req, res) => {
 };
 
 module.exports.formLayout = (req, res) => {
-  if (!req.cookies.userId) {
-    return res.redirect('/loginPage');
-  }
   return res.render('formLayout');
 };
 
@@ -40,9 +37,6 @@ module.exports.insertEmployee = (req, res) => {
 };
 
 module.exports.viewTable = async (req, res) => {
-  if (!req.cookies.userId) {
-    return res.redirect('/loginPage');
-  }
   var record = await employee.find({});
   if (!record) {
     console.log(`record not found`);
