@@ -96,7 +96,7 @@ module.exports.changePassword = async (req, res) => {
   console.log(req.user.id);
   console.log(req.user);
   console.log(req.body);
-  let db_current = await bcrypt.compare(req.user.password, req.body.currentPwd);
+  let db_current = await bcrypt.compare(req.body.currentPwd, req.user.password);
   console.log(db_current);
   if (db_current) {
     let current_new = await bcrypt.compare(
