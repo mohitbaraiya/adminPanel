@@ -12,6 +12,7 @@ const db = require('./config/mongoose');
 const session = require('express-session');
 const passport = require('passport');
 const passportLocal = require('./config/passport-local');
+const { hash } = require('bcryptjs');
 
 app.use(express.urlencoded());
 app.use('/uploads', express.static('./uploads'));

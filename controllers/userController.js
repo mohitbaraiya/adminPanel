@@ -1,85 +1,138 @@
-const registerUser = require('../models/registerUser');
-const bcrypt = require('bcryptjs');
-// for register functionality
+const employee = require('../models/employee');
+const path = require('path');
+const fs = require('fs');
 
-module.exports.registerPage = (req, res) => {
-  res.render('registerUser');
+module.exports.home = (req, res) => {
+  return res.render('index');
 };
 
-module.exports.registerUser = async (req, res) => {
-  let registerrecord = await registerUser.findOne({ email: req.body.email });
+module.exports.formLayout = (req, res) => {
+  return res.render('formLayout');
+};
 
-  if (registerrecord) {
-    console.log(`email or username already exists`);
-    req.flash(
-      'error_message',
-      'account already exists please log in to continue'
+module.exports.insertEmployee = (req, res) => {
+  employee.upload(req, res, (error) => {
+    let imageData = employee.imgPath + '/' + req.file.filename;
+
+    if (error) {
+      console.log(`upload problem`);
+      return false;
+    }
+    employee.create(
+      {
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
+        image: imageData,
+        message: req.body.message,
+      },
+      (error, record) => {
+        if (error) {
+          console.log(`record not inserted`);
+        }
+        return res.redirect('back');
+      }
     );
-    return res.redirect('back');
+  });
+};
+
+module.exports.viewTable = async (req, res) => {
+  var record = await employee.find({});
+  if (!record) {
+    console.log(`record not found`);
+    return false;
+  }
+  if (record) {
+    return res.render('table', {
+      'record': record,
+    });
+  }
+};
+
+module.exports.deleteData = async (req, res) => {
+  let deleteRecord = await employee.findById(req.params.id);
+  if (!deleteRecord) {
+    console.log(`record not found`);
+    return false;
   }
 
-  {
-    let hashedpwd = await bcrypt.hash(req.body.password, 10);
-    let record = await registerUser.create({
-      username: req.body.username,
-      email: req.body.email,
-      password: hashedpwd,
-    });
-
+  if (deleteRecord || deleteRecord == null) {
+    fs.unlinkSync(path.join(__dirname, '..', deleteRecord.image));
+    let record = await employee.findByIdAndDelete(deleteRecord);
     if (!record) {
-      console.log(`error to register user`);
-      req.flash('error_message', 'register error please try again !!');
+      console.log(`record delete error`);
+      return false;
+    }
+    if (record) {
+      console.log(`record deleted`);
       return res.redirect('back');
     }
-
-    console.log(`register successfully`);
-    req.flash(
-      'success_message',
-      'registered successfully. please login to continue !!'
-    );
-    return res.redirect('/loginPage');
   }
 };
 
-// for login functionality
-
-module.exports.loginPage = (req, res) => {
-  res.render('loginUser');
-};
-
-module.exports.loginUser = (req, res) => {
-  // registerUser.findOne({ email: req.body.email }, (error, loginRecord) => {
-  //   if (error) {
-  //     console.log(`error in loginUser functionality`);
-  //     return false;
-  //   }
-  //   if (!loginRecord) {
-  //     console.log(`wrong email or username `);
-  //     return res.redirect('/loginPage');
-  //   } else if (loginRecord) {
-  //     if (loginRecord.password == req.body.password) {
-  //       res.cookie('userId', loginRecord.id);
-  //       console.log(`login succesfully`);
-  //       return res.redirect('/');
-  //     }
-  //     console.log(`wrong password`);
-  //     return res.redirect('/loginPage');
-  //   }
-  // });
-};
-
-// logout function
-
-module.exports.logoutUser = (req, res) => {
-  if (!req.isAuthenticated()) {
-    req.flash('error_message', 'You need to be logged in to log out!');
-    return res.redirect('/loginPage');
+module.exports.editData = async (req, res) => {
+  let editRecord = await employee.findById(req.params.id);
+  if (!editRecord) {
+    console.log(`record not found`);
+    return false;
   }
-  req.logout((error) => {
-    if (error) {
-      console.log(`logout failed`);
+  if (editRecord) {
+    return res.render('updateForm', {
+      'update': editRecord,
+    });
+  }
+};
+
+module.exports.updateData = async (req, res) => {
+  employee.upload(req, res, (error) => {
+    let updateId = req.body.hidden_id;
+    if (req.file) {
+      employee.findById(updateId, (error, record) => {
+        fs.unlinkSync(path.join(__dirname, '..', record.image));
+      });
+      let newImage = employee.imgPath + '/' + req.file.filename;
+      employee.findByIdAndUpdate(
+        updateId,
+        {
+          name: req.body.name,
+          email: req.body.email,
+          phone: req.body.phone,
+          image: newImage,
+          message: req.body.message,
+        },
+        (error) => {
+          if (error) {
+            console.log(`update data failed`);
+            return false;
+          }
+          return res.redirect('/viewTable');
+        }
+      );
+    } else {
+      employee.findById(updateId, (error, record) => {
+        if (error) {
+          console.log(`find record failed`);
+          return false;
+        }
+        let oldImage = record.image;
+        employee.findByIdAndUpdate(
+          updateId,
+          {
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.phone,
+            image: oldImage,
+            message: req.body.message,
+          },
+          (error) => {
+            if (error) {
+              console.log(`old image failed to save`);
+              return false;
+            }
+            return res.redirect('/viewTable');
+          }
+        );
+      });
     }
-    req.flash('success_message', 'You have successfully logged out!');
-    return res.redirect('/loginPage');
   });
 };
